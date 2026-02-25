@@ -1,0 +1,8 @@
+{
+  "name": "SIPENDI - Peminjaman Barang",
+  "description": "Sistem Peminjaman dan Pengembalian Barang Kecamatan Tamalate dengan integrasi Google Sheets dan deteksi lokasi otomatis.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
