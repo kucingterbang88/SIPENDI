@@ -8,6 +8,7 @@ import Peminjaman from './pages/Peminjaman';
 import Pengembalian from './pages/Pengembalian';
 import AdminBarang from './pages/AdminBarang';
 import Riwayat from './pages/Riwayat';
+import SettingUser from './pages/SettingUser';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -32,7 +33,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home onLogout={handleLogout} />} />
         <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" replace />} />
         
         {/* Protected Routes */}
@@ -47,7 +48,10 @@ export default function App() {
                   <Route path="/pengembalian" element={<Pengembalian />} />
                   <Route path="/riwayat" element={<Riwayat />} />
                   {user.role === 'Admin' && (
-                    <Route path="/barang" element={<AdminBarang />} />
+                    <>
+                      <Route path="/barang" element={<AdminBarang />} />
+                      <Route path="/users" element={<SettingUser />} />
+                    </>
                   )}
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>

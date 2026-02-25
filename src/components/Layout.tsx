@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ArrowRightLeft, History, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Package, ArrowRightLeft, History, LogOut, Menu, X, User } from 'lucide-react';
 import React, { useState } from 'react';
 import { cn } from '../lib/utils';
 
@@ -12,7 +12,10 @@ export default function Layout({ children, user, onLogout }: { children: React.R
     { name: 'Peminjaman', href: '/peminjaman', icon: ArrowRightLeft },
     { name: 'Pengembalian', href: '/pengembalian', icon: ArrowRightLeft },
     { name: 'Riwayat', href: '/riwayat', icon: History },
-    ...(user.role === 'Admin' ? [{ name: 'Kelola Barang', href: '/barang', icon: Package }] : []),
+    ...(user.role === 'Admin' ? [
+      { name: 'Kelola Barang', href: '/barang', icon: Package },
+      { name: 'Setting User', href: '/users', icon: User }
+    ] : []),
   ];
 
   return (

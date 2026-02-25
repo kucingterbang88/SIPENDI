@@ -2,12 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Package, MapPin, User, Phone, Hash, Camera, CheckCircle2, Search, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function Home() {
+export default function Home({ onLogout }: { onLogout?: () => void }) {
   const [activeTab, setActiveTab] = useState<'pinjam' | 'kembali'>('pinjam');
   const [gpsLocation, setGpsLocation] = useState('');
   const [locationError, setLocationError] = useState('');
 
   useEffect(() => {
+    // Auto logout if user visits public page
+    if (localStorage.getItem('sipendi_user')) {
+      if (onLogout) {
+        onLogout();
+      } else {
+        localStorage.removeItem('sipendi_user');
+      }
+    }
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -414,7 +423,7 @@ function FormPengembalian() {
             value={tiket}
             onChange={e => setTiket(e.target.value)}
             className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
-            placeholder="Masukkan No Tiket (contoh: 2023102500001)"
+            placeholder="Masukkan No Tiket atau No HP Peminjam"
           />
         </div>
         <button
