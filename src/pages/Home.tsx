@@ -401,7 +401,7 @@ function FormPengembalian() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tiket,
+          tiket: dataPinjam.no_tiket,
           ...formData
         }),
       });
