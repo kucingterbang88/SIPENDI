@@ -91,7 +91,7 @@ export default function Pengembalian() {
                 required
                 value={tiket}
                 onChange={e => setTiket(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 placeholder="Masukkan No Tiket (contoh: 2023102500001)"
               />
             </div>
@@ -116,8 +116,8 @@ export default function Pengembalian() {
 
         {success && (
           <div className="p-6 sm:px-8">
-            <div className="bg-emerald-50 text-emerald-700 text-sm p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-blue-600" />
               <span className="font-medium">{success}</span>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function Pengembalian() {
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6 bg-slate-50/50">
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <CheckCircle2 className="h-5 w-5 text-blue-500" />
                 Data Peminjaman Ditemukan
               </h3>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
@@ -162,7 +162,7 @@ export default function Pengembalian() {
                     required
                     value={formData.nama}
                     onChange={e => setFormData({ ...formData, nama: e.target.value })}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                   />
                 </div>
               </div>
@@ -178,7 +178,7 @@ export default function Pengembalian() {
                     required
                     value={formData.kontak}
                     onChange={e => setFormData({ ...formData, kontak: e.target.value })}
-                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                   />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function Pengembalian() {
                       className={`
                         relative flex cursor-pointer rounded-xl border p-4 focus:outline-none
                         ${formData.kondisi === kondisi 
-                          ? kondisi === 'Baik' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                          ? kondisi === 'Baik' ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
                           : 'bg-white border-slate-200 hover:bg-slate-50'
                         }
                       `}
@@ -209,7 +209,7 @@ export default function Pengembalian() {
                         <span className="flex flex-col">
                           <span className={`block text-sm font-medium ${
                             formData.kondisi === kondisi 
-                              ? kondisi === 'Baik' ? 'text-emerald-900' : 'text-red-900'
+                              ? kondisi === 'Baik' ? 'text-blue-900' : 'text-red-900'
                               : 'text-slate-900'
                           }`}>
                             {kondisi}
@@ -219,7 +219,7 @@ export default function Pengembalian() {
                       <CheckCircle2
                         className={`h-5 w-5 ${
                           formData.kondisi === kondisi 
-                            ? kondisi === 'Baik' ? 'text-emerald-600' : 'text-red-600'
+                            ? kondisi === 'Baik' ? 'text-blue-600' : 'text-red-600'
                             : 'invisible'
                         }`}
                       />
@@ -241,9 +241,9 @@ export default function Pengembalian() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
               >
-                {loading ? 'Memproses...' : 'Konfirmasi Pengembalian'}
+                {loading ? 'Mempblues...' : 'Konfirmasi Pengembalian'}
               </button>
             </div>
           </form>

@@ -140,7 +140,7 @@ export default function Riwayat() {
           </button>
           <button
             onClick={exportToExcel}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 text-sm font-medium rounded-xl hover:bg-emerald-100 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-xl hover:bg-blue-100 transition-colors"
           >
             <Table className="h-4 w-4" />
             Excel
@@ -165,7 +165,7 @@ export default function Riwayat() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               placeholder="Cari tiket, nama, atau barang..."
             />
           </div>
@@ -176,7 +176,7 @@ export default function Riwayat() {
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors bg-white"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
             >
               <option value="Semua">Semua Status</option>
               <option value="Dipinjam">Dipinjam</option>
@@ -229,7 +229,7 @@ export default function Riwayat() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         item.status === 'Dikembalikan' 
-                          ? 'bg-emerald-100 text-emerald-800' 
+                          ? 'bg-blue-100 text-blue-800' 
                           : 'bg-amber-100 text-amber-800'
                       }`}>
                         {item.status}

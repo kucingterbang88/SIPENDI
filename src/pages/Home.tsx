@@ -33,12 +33,13 @@ export default function Home({ onLogout }: { onLogout?: () => void }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-emerald-900 text-white p-4 shadow-md flex justify-between items-center">
+      <header className="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center">
         <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-          <Package className="h-6 w-6 text-emerald-400" />
+          <img src="/logo-tamalate.png" alt="Logo Tamalate" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          <Package className="h-6 w-6 text-blue-400" />
           <span>SIPENDI</span>
         </div>
-        <Link to="/login" className="flex items-center gap-2 bg-emerald-800 hover:bg-emerald-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <Link to="/login" className="flex items-center gap-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           <ShieldCheck className="h-4 w-4" />
           Login Admin
         </Link>
@@ -53,13 +54,13 @@ export default function Home({ onLogout }: { onLogout?: () => void }) {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="flex border-b border-slate-200">
             <button
-              className={`flex-1 py-4 text-center font-medium text-sm transition-colors ${activeTab === 'pinjam' ? 'bg-emerald-50 text-emerald-700 border-b-2 border-emerald-600' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`flex-1 py-4 text-center font-medium text-sm transition-colors ${activeTab === 'pinjam' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-slate-500 hover:bg-slate-50'}`}
               onClick={() => setActiveTab('pinjam')}
             >
               Form Peminjaman
             </button>
             <button
-              className={`flex-1 py-4 text-center font-medium text-sm transition-colors ${activeTab === 'kembali' ? 'bg-emerald-50 text-emerald-700 border-b-2 border-emerald-600' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`flex-1 py-4 text-center font-medium text-sm transition-colors ${activeTab === 'kembali' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-slate-500 hover:bg-slate-50'}`}
               onClick={() => setActiveTab('kembali')}
             >
               Form Pengembalian
@@ -90,7 +91,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
     nama: '',
     kontak: '',
     barang: '',
-    jumlah: 1,
+    jumlah: '' as number | '',
     fotoPeminjam: '',
     fotoBarang: '',
   });
@@ -123,6 +124,9 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
     }
   };
 
+  const selectedBarang = barangList.find(b => b.nama_barang === formData.barang);
+  const isStockInsufficient = selectedBarang && formData.jumlah !== '' && formData.jumlah > selectedBarang.jumlah_stok;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -144,7 +148,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
           nama: '',
           kontak: '',
           barang: '',
-          jumlah: 1,
+          jumlah: '',
           fotoPeminjam: '',
           fotoBarang: '',
         });
@@ -167,8 +171,8 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
         </div>
       )}
       {success && (
-        <div className="bg-emerald-50 text-emerald-700 text-sm p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+        <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 text-blue-600" />
           <span className="font-medium">{success}</span>
         </div>
       )}
@@ -185,7 +189,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
               required
               value={formData.nama}
               onChange={e => setFormData({ ...formData, nama: e.target.value })}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               placeholder="Nama lengkap"
             />
           </div>
@@ -202,7 +206,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
               required
               value={formData.kontak}
               onChange={e => setFormData({ ...formData, kontak: e.target.value })}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               placeholder="0812..."
             />
           </div>
@@ -219,7 +223,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
               required
               value={formData.lokasi}
               onChange={e => setFormData({ ...formData, lokasi: e.target.value })}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               placeholder="Ruang Rapat..."
             />
           </div>
@@ -254,7 +258,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
               required
               value={formData.barang}
               onChange={e => setFormData({ ...formData, barang: e.target.value })}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors bg-white"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
             >
               <option value="">-- Pilih Barang --</option>
               {barangList.map(b => (
@@ -270,17 +274,24 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
           <label className="block text-sm font-medium text-slate-700">Jumlah</label>
           <div className="mt-1 relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Hash className="h-5 w-5 text-slate-400" />
+              <Hash className={`h-5 w-5 ${isStockInsufficient ? 'text-red-400' : 'text-slate-400'}`} />
             </div>
             <input
               type="number"
               min="1"
               required
               value={formData.jumlah}
-              onChange={e => setFormData({ ...formData, jumlah: parseInt(e.target.value) || 1 })}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              onChange={e => setFormData({ ...formData, jumlah: e.target.value ? parseInt(e.target.value) : '' })}
+              className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${
+                isStockInsufficient 
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500 text-red-900' 
+                  : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             />
           </div>
+          {isStockInsufficient && (
+            <p className="mt-2 text-sm text-red-600">jumlah barang yang akan dipinjam tidak cukup</p>
+          )}
         </div>
 
         <div className="sm:col-span-2 border-t border-slate-100 pt-6 mt-2">
@@ -289,7 +300,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Foto Peminjam</label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-emerald-500 transition-colors bg-slate-50">
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-slate-50">
             <div className="space-y-1 text-center">
               {formData.fotoPeminjam ? (
                 <img src={formData.fotoPeminjam} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
@@ -297,7 +308,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
                 <Camera className="mx-auto h-12 w-12 text-slate-400" />
               )}
               <div className="flex text-sm text-slate-600 justify-center mt-4">
-                <label className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
+                <label className="relative cursor-pointer bg-white rounded-md font-bold text-black hover:text-slate-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                   <span>Upload foto</span>
                   <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, 'fotoPeminjam')} />
                 </label>
@@ -308,7 +319,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Foto Barang</label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-emerald-500 transition-colors bg-slate-50">
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-slate-50">
             <div className="space-y-1 text-center">
               {formData.fotoBarang ? (
                 <img src={formData.fotoBarang} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
@@ -316,7 +327,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
                 <Package className="mx-auto h-12 w-12 text-slate-400" />
               )}
               <div className="flex text-sm text-slate-600 justify-center mt-4">
-                <label className="relative cursor-pointer bg-white rounded-md font-medium text-emerald-600 hover:text-emerald-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-emerald-500">
+                <label className="relative cursor-pointer bg-white rounded-md font-bold text-black hover:text-slate-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                   <span>Upload foto</span>
                   <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, 'fotoBarang')} />
                 </label>
@@ -329,8 +340,8 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
       <div className="pt-6 border-t border-slate-100">
         <button
           type="submit"
-          disabled={loading || !gpsLocation}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+          disabled={loading || !gpsLocation || isStockInsufficient || formData.jumlah === '' || formData.jumlah <= 0}
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
           {loading ? 'Menyimpan...' : 'Simpan Peminjaman'}
         </button>
@@ -422,7 +433,7 @@ function FormPengembalian() {
             required
             value={tiket}
             onChange={e => setTiket(e.target.value)}
-            className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+            className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
             placeholder="Masukkan No Tiket atau No HP Peminjam"
           />
         </div>
@@ -443,8 +454,8 @@ function FormPengembalian() {
       )}
 
       {success && (
-        <div className="bg-emerald-50 text-emerald-700 text-sm p-4 rounded-xl border border-emerald-100 flex items-center gap-3">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+        <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 text-blue-600" />
           <span className="font-medium">{success}</span>
         </div>
       )}
@@ -453,7 +464,7 @@ function FormPengembalian() {
         <form onSubmit={handleSubmit} className="space-y-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <CheckCircle2 className="h-5 w-5 text-blue-500" />
               Data Peminjaman Ditemukan
             </h3>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
@@ -488,7 +499,7 @@ function FormPengembalian() {
                   required
                   value={formData.nama}
                   onChange={e => setFormData({ ...formData, nama: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 />
               </div>
             </div>
@@ -504,7 +515,7 @@ function FormPengembalian() {
                   required
                   value={formData.kontak}
                   onChange={e => setFormData({ ...formData, kontak: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 />
               </div>
             </div>
@@ -518,7 +529,7 @@ function FormPengembalian() {
                     className={`
                       relative flex cursor-pointer rounded-xl border p-4 focus:outline-none
                       ${formData.kondisi === kondisi 
-                        ? kondisi === 'Baik' ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                        ? kondisi === 'Baik' ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
                         : 'bg-white border-slate-200 hover:bg-slate-50'
                       }
                     `}
@@ -535,7 +546,7 @@ function FormPengembalian() {
                       <span className="flex flex-col">
                         <span className={`block text-sm font-medium ${
                           formData.kondisi === kondisi 
-                            ? kondisi === 'Baik' ? 'text-emerald-900' : 'text-red-900'
+                            ? kondisi === 'Baik' ? 'text-blue-900' : 'text-red-900'
                             : 'text-slate-900'
                         }`}>
                           {kondisi}
@@ -545,7 +556,7 @@ function FormPengembalian() {
                     <CheckCircle2
                       className={`h-5 w-5 ${
                         formData.kondisi === kondisi 
-                          ? kondisi === 'Baik' ? 'text-emerald-600' : 'text-red-600'
+                          ? kondisi === 'Baik' ? 'text-blue-600' : 'text-red-600'
                           : 'invisible'
                       }`}
                     />
@@ -567,9 +578,9 @@ function FormPengembalian() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Memproses...' : 'Konfirmasi Pengembalian'}
+              {loading ? 'Mempblues...' : 'Konfirmasi Pengembalian'}
             </button>
           </div>
         </form>

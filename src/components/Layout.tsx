@@ -30,24 +30,25 @@ export default function Layout({ children, user, onLogout }: { children: React.R
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-emerald-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:block",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-blue-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:block",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex h-16 shrink-0 items-center justify-between px-6 bg-emerald-950">
+        <div className="flex h-16 shrink-0 items-center justify-between px-6 bg-blue-950">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <Package className="h-6 w-6 text-emerald-400" />
+            <img src="/logo-tamalate.png" alt="Logo Tamalate" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <Package className="h-6 w-6 text-blue-400" />
             <span>SIPENDI</span>
           </div>
-          <button className="lg:hidden text-emerald-200 hover:text-white" onClick={() => setSidebarOpen(false)}>
+          <button className="lg:hidden text-blue-200 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="h-6 w-6" />
           </button>
         </div>
         
         <div className="px-4 py-6">
           <div className="mb-8 px-2">
-            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Kecamatan Tamalate</p>
-            <p className="mt-2 text-sm font-medium text-emerald-100">Halo, {user.nama_lengkap}</p>
-            <p className="text-xs text-emerald-300">{user.role}</p>
+            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Kecamatan Tamalate</p>
+            <p className="mt-2 text-sm font-medium text-blue-100">Halo, {user.nama_lengkap}</p>
+            <p className="text-xs text-blue-300">{user.role}</p>
           </div>
 
           <nav className="flex flex-1 flex-col gap-1">
@@ -61,13 +62,13 @@ export default function Layout({ children, user, onLogout }: { children: React.R
                   className={cn(
                     "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-emerald-800 text-white" 
-                      : "text-emerald-100 hover:bg-emerald-800/50 hover:text-white"
+                      ? "bg-blue-800 text-white" 
+                      : "text-blue-100 hover:bg-blue-800/50 hover:text-white"
                   )}
                 >
                   <item.icon className={cn(
                     "h-5 w-5 shrink-0",
-                    isActive ? "text-emerald-400" : "text-emerald-300 group-hover:text-emerald-400"
+                    isActive ? "text-blue-400" : "text-blue-300 group-hover:text-blue-400"
                   )} />
                   {item.name}
                 </Link>
@@ -79,9 +80,9 @@ export default function Layout({ children, user, onLogout }: { children: React.R
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <button
             onClick={onLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-emerald-100 hover:bg-emerald-800/50 hover:text-white transition-colors"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-blue-100 hover:bg-blue-800/50 hover:text-white transition-colors"
           >
-            <LogOut className="h-5 w-5 shrink-0 text-emerald-300" />
+            <LogOut className="h-5 w-5 shrink-0 text-blue-300" />
             Keluar
           </button>
         </div>
@@ -106,7 +107,7 @@ export default function Layout({ children, user, onLogout }: { children: React.R
               </h1>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <Link to="/" className="text-sm font-medium text-emerald-600 hover:text-emerald-500">
+              <Link to="/" className="text-sm font-medium text-blue-600 hover:text-blue-500">
                 Ke Halaman Publik
               </Link>
             </div>

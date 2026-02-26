@@ -13,6 +13,7 @@ export default function SettingUser() {
     password: '',
     role: 'Viewer',
     nama_lengkap: '',
+    email: '',
     original_username: ''
   });
 
@@ -58,7 +59,7 @@ export default function SettingUser() {
 
       if (data.success) {
         setSuccess(data.message);
-        setFormData({ username: '', password: '', role: 'Viewer', nama_lengkap: '', original_username: '' });
+        setFormData({ username: '', password: '', role: 'Viewer', nama_lengkap: '', email: '', original_username: '' });
         setIsEditing(false);
         fetchUsers();
       } else {
@@ -77,6 +78,7 @@ export default function SettingUser() {
       password: user.password,
       role: user.role,
       nama_lengkap: user.nama_lengkap,
+      email: user.email || '',
       original_username: user.username
     });
     setIsEditing(true);
@@ -110,7 +112,7 @@ export default function SettingUser() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100 bg-slate-50/50">
           <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            {isEditing ? <Edit2 className="h-5 w-5 text-emerald-600" /> : <UserPlus className="h-5 w-5 text-emerald-600" />}
+            {isEditing ? <Edit2 className="h-5 w-5 text-blue-600" /> : <UserPlus className="h-5 w-5 text-blue-600" />}
             {isEditing ? 'Edit User' : 'Tambah User Baru'}
           </h3>
         </div>
@@ -122,7 +124,7 @@ export default function SettingUser() {
             </div>
           )}
           {success && (
-            <div className="bg-emerald-50 text-emerald-700 text-sm p-4 rounded-xl border border-emerald-100">
+            <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100">
               {success}
             </div>
           )}
@@ -135,7 +137,7 @@ export default function SettingUser() {
                 required
                 value={formData.username}
                 onChange={e => setFormData({ ...formData, username: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             <div>
@@ -145,7 +147,7 @@ export default function SettingUser() {
                 required
                 value={formData.password}
                 onChange={e => setFormData({ ...formData, password: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             <div>
@@ -155,7 +157,7 @@ export default function SettingUser() {
                 required
                 value={formData.nama_lengkap}
                 onChange={e => setFormData({ ...formData, nama_lengkap: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 sm:text-sm"
               />
             </div>
             <div>
@@ -164,19 +166,32 @@ export default function SettingUser() {
                 required
                 value={formData.role}
                 onChange={e => setFormData({ ...formData, role: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 sm:text-sm bg-white"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 sm:text-sm bg-white"
               >
                 <option value="Admin">Admin</option>
                 <option value="Viewer">Viewer</option>
               </select>
             </div>
+            {formData.role === 'Admin' && (
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-slate-700">Email (Untuk Notifikasi)</label>
+                <input
+                  type="email"
+                  required={formData.role === 'Admin'}
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  placeholder="admin@example.com"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+              className="flex-1 justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
               {loading ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambah User'}
             </button>
@@ -185,9 +200,9 @@ export default function SettingUser() {
                 type="button"
                 onClick={() => {
                   setIsEditing(false);
-                  setFormData({ username: '', password: '', role: 'Viewer', nama_lengkap: '', original_username: '' });
+                  setFormData({ username: '', password: '', role: 'Viewer', nama_lengkap: '', email: '', original_username: '' });
                 }}
-                className="flex-1 justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                className="flex-1 justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Batal
               </button>
@@ -236,7 +251,7 @@ export default function SettingUser() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEdit(user)}
-                        className="text-emerald-600 hover:text-emerald-900 mr-4"
+                        className="text-blue-600 hover:text-blue-900 mr-4"
                       >
                         Edit
                       </button>

@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   const cards = [
     { name: 'Total Barang', value: stats.totalBarang, icon: Package, color: 'bg-blue-500' },
-    { name: 'Total Peminjaman', value: stats.totalPeminjaman, icon: History, color: 'bg-emerald-500' },
+    { name: 'Total Peminjaman', value: stats.totalPeminjaman, icon: History, color: 'bg-blue-500' },
     { name: 'Sedang Dipinjam', value: stats.sedangDipinjam, icon: ArrowRightLeft, color: 'bg-amber-500' },
   ];
 
@@ -72,9 +72,9 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Akses Cepat</h3>
           <div className="grid grid-cols-2 gap-4">
-            <Link to="/peminjaman" className="flex flex-col items-center justify-center p-6 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-100/50">
-              <ArrowRightLeft className="h-8 w-8 text-emerald-600 mb-3" />
-              <span className="text-sm font-medium text-emerald-900">Peminjaman Baru</span>
+            <Link to="/peminjaman" className="flex flex-col items-center justify-center p-6 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100/50">
+              <ArrowRightLeft className="h-8 w-8 text-blue-600 mb-3" />
+              <span className="text-sm font-medium text-blue-900">Peminjaman Baru</span>
             </Link>
             <Link to="/pengembalian" className="flex flex-col items-center justify-center p-6 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors border border-blue-100/50">
               <History className="h-8 w-8 text-blue-600 mb-3" />

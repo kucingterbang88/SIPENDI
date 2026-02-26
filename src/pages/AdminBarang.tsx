@@ -85,7 +85,7 @@ export default function AdminBarang() {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
           {showForm ? 'Batal Tambah' : 'Tambah Barang'}
@@ -103,7 +103,7 @@ export default function AdminBarang() {
                 required
                 value={formData.kode}
                 onChange={e => setFormData({ ...formData, kode: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 placeholder="BRG001"
               />
             </div>
@@ -114,7 +114,7 @@ export default function AdminBarang() {
                 required
                 value={formData.nama}
                 onChange={e => setFormData({ ...formData, nama: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 placeholder="Nama Barang"
               />
             </div>
@@ -126,7 +126,7 @@ export default function AdminBarang() {
                 required
                 value={formData.stok}
                 onChange={e => setFormData({ ...formData, stok: parseInt(e.target.value) || 1 })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               />
             </div>
             <div className="sm:col-span-2">
@@ -135,14 +135,14 @@ export default function AdminBarang() {
                 rows={3}
                 value={formData.deskripsi}
                 onChange={e => setFormData({ ...formData, deskripsi: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                 placeholder="Deskripsi barang..."
               />
             </div>
             <div className="sm:col-span-2 flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors"
+                className="px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
                 Simpan Barang
               </button>
@@ -161,7 +161,7 @@ export default function AdminBarang() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+              className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
               placeholder="Cari nama atau kode barang..."
             />
           </div>
@@ -198,8 +198,8 @@ export default function AdminBarang() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                          <Package className="h-5 w-5 text-emerald-600" />
+                        <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Package className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-slate-900">{item.nama_barang}</div>
@@ -209,7 +209,7 @@ export default function AdminBarang() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        item.jumlah_stok > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                        item.jumlah_stok > 0 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
                       }`}>
                         {item.jumlah_stok} unit
                       </span>

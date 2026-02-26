@@ -39,7 +39,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="h-16 w-16 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-600/20">
+          <div className="h-16 w-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
             <Package className="h-8 w-8 text-white" />
           </div>
         </div>
@@ -49,7 +49,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
         <p className="mt-2 text-center text-sm text-slate-600">
           Sistem Peminjaman dan Pengembalian
           <br />
-          <span className="font-medium text-emerald-600">Kecamatan Tamalate</span>
+          <span className="font-medium text-blue-600">Kecamatan Tamalate</span>
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                   placeholder="Masukkan username"
                 />
               </div>
@@ -90,7 +90,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
                   placeholder="Masukkan password"
                 />
               </div>
@@ -99,7 +99,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Masuk...' : 'Masuk'}
             </button>

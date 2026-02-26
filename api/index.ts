@@ -2,6 +2,7 @@ import express from 'express';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import { Readable } from 'stream';
+import nodemailer from 'nodemailer';
 dotenv.config();
 
 const SCOPES = [
@@ -33,6 +34,48 @@ function getSheetsClient() {
 function getDriveClient() {
   const auth = getGoogleClient();
   return google.drive({ version: 'v3', auth });
+}
+
+// Email Transporter Setup
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+async function sendAdminNotification(subject: string, text: string) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log('Email credentials not set. Skipping notification.');
+    return;
+  }
+
+  try {
+    const sheets = getSheetsClient();
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Users!A2:E',
+    });
+    const rows = response.data.values || [];
+    
+    // Find all admins with an email
+    const adminEmails = rows
+      .filter(r => r[2] === 'Admin' && r[4])
+      .map(r => r[4]);
+
+    if (adminEmails.length > 0) {
+      await transporter.sendMail({
+        from: `"SIPENDI Notifikasi" <${process.env.EMAIL_USER}>`,
+        to: adminEmails.join(','),
+        subject: subject,
+        text: text,
+      });
+      console.log('Notification email sent to admins.');
+    }
+  } catch (error) {
+    console.error('Error sending email notification:', error);
+  }
 }
 
 async function uploadToDrive(base64Data: string, filename: string): Promise<string> {
@@ -117,7 +160,7 @@ app.get('/api/users', async (req, res) => {
     const sheets = getSheetsClient();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Users!A2:D',
+      range: 'Users!A2:E',
     });
     const rows = response.data.values || [];
     const users = rows.map(row => ({
@@ -125,6 +168,7 @@ app.get('/api/users', async (req, res) => {
       password: row[1],
       role: row[2],
       nama_lengkap: row[3],
+      email: row[4] || '',
     }));
     res.json(users);
   } catch (error: any) {
@@ -133,14 +177,14 @@ app.get('/api/users', async (req, res) => {
 });
 
 app.post('/api/users', async (req, res) => {
-  const { username, password, role, nama_lengkap } = req.body;
+  const { username, password, role, nama_lengkap, email } = req.body;
   try {
     const sheets = getSheetsClient();
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Users!A:D',
+      range: 'Users!A:E',
       valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[username, password, role, nama_lengkap]] },
+      requestBody: { values: [[username, password, role, nama_lengkap, email || '']] },
     });
     res.json({ success: true, message: 'User berhasil ditambahkan!' });
   } catch (e: any) {
@@ -150,12 +194,12 @@ app.post('/api/users', async (req, res) => {
 
 app.put('/api/users/:original_username', async (req, res) => {
   const { original_username } = req.params;
-  const { username, password, role, nama_lengkap } = req.body;
+  const { username, password, role, nama_lengkap, email } = req.body;
   try {
     const sheets = getSheetsClient();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Users!A2:D',
+      range: 'Users!A2:E',
     });
     const rows = response.data.values || [];
     const index = rows.findIndex(r => r[0] === original_username);
@@ -163,9 +207,9 @@ app.put('/api/users/:original_username', async (req, res) => {
     if (index !== -1) {
       await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `Users!A${index + 2}:D${index + 2}`,
+        range: `Users!A${index + 2}:E${index + 2}`,
         valueInputOption: 'USER_ENTERED',
-        requestBody: { values: [[username, password, role, nama_lengkap]] },
+        requestBody: { values: [[username, password, role, nama_lengkap, email || '']] },
       });
     }
     res.json({ success: true, message: 'User berhasil diupdate!' });
@@ -180,7 +224,7 @@ app.delete('/api/users/:username', async (req, res) => {
     const sheets = getSheetsClient();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Users!A2:D',
+      range: 'Users!A2:E',
     });
     const rows = response.data.values || [];
     const index = rows.findIndex(r => r[0] === username);
@@ -188,7 +232,7 @@ app.delete('/api/users/:username', async (req, res) => {
     if (index !== -1) {
       await sheets.spreadsheets.values.clear({
         spreadsheetId: SPREADSHEET_ID,
-        range: `Users!A${index + 2}:D${index + 2}`,
+        range: `Users!A${index + 2}:E${index + 2}`,
       });
     }
     res.json({ success: true });
@@ -338,6 +382,12 @@ app.post('/api/peminjaman', async (req, res) => {
       },
     });
 
+    // Send Notification
+    await sendAdminNotification(
+      `Notifikasi Peminjaman Baru - ${noTiket}`,
+      `Telah terjadi transaksi peminjaman baru:\n\nNo Tiket: ${noTiket}\nWaktu: ${waktuFormat}\nNama Peminjam: ${nama}\nNo Kontak: ${kontak}\nBarang: ${barang}\nJumlah: ${jumlah}\nLokasi: ${lokasi}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
+    );
+
     res.json({ success: true, tiket: noTiket });
   } catch (error: any) {
     console.error('Error creating peminjaman:', error);
@@ -435,6 +485,12 @@ app.post('/api/pengembalian', async (req, res) => {
         });
       }
     }
+
+    // Send Notification
+    await sendAdminNotification(
+      `Notifikasi Pengembalian Barang - ${tiket}`,
+      `Telah terjadi transaksi pengembalian barang:\n\nNo Tiket: ${tiket}\nWaktu: ${waktuPengembalian}\nNama Pengembali: ${nama}\nNo Kontak: ${kontak}\nBarang: ${barang}\nJumlah: ${jumlah}\nKondisi: ${kondisi}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
+    );
 
     res.json({ success: true });
   } catch (error: any) {
