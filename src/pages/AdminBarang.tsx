@@ -37,6 +37,21 @@ export default function AdminBarang() {
     fetchBarang();
   }, []);
 
+  const generateKodeBarang = (barangList: any[]) => {
+    let maxNumber = 0;
+    for (const item of barangList) {
+      const match = item.kode_barang.match(/^KT(\d{4})$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+    const nextNumber = maxNumber + 1;
+    return `KT${nextNumber.toString().padStart(4, '0')}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -111,6 +126,8 @@ export default function AdminBarang() {
               setOriginalKode('');
               setFormData({ kode: '', nama: '', stok: 1, deskripsi: '' });
             } else {
+              const nextKode = generateKodeBarang(barang);
+              setFormData({ kode: nextKode, nama: '', stok: 1, deskripsi: '' });
               setShowForm(true);
             }
           }}
@@ -130,10 +147,11 @@ export default function AdminBarang() {
               <input
                 type="text"
                 required
+                disabled
                 value={formData.kode}
                 onChange={e => setFormData({ ...formData, kode: e.target.value })}
-                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                placeholder="BRG001"
+                className="mt-1 block w-full px-3 py-2.5 border border-slate-300 rounded-xl bg-slate-100 text-slate-500 sm:text-sm transition-colors cursor-not-allowed"
+                placeholder="KT0001"
               />
             </div>
             <div>
