@@ -9,6 +9,7 @@ import Pengembalian from './pages/Pengembalian';
 import AdminBarang from './pages/AdminBarang';
 import Riwayat from './pages/Riwayat';
 import SettingUser from './pages/SettingUser';
+import Success from './pages/Success';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -34,6 +35,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home onLogout={handleLogout} />} />
+        <Route path="/success" element={<Success />} />
         <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" replace />} />
         
         {/* Protected Routes */}

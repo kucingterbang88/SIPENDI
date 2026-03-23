@@ -13,11 +13,14 @@ export default function Peminjaman() {
     lokasi: '',
     nama: '',
     kontak: '',
+  });
+
+  const [items, setItems] = useState([{
     barang: '',
-    jumlah: 1,
+    jumlah: '' as number | '',
     fotoPeminjam: '',
     fotoBarang: '',
-  });
+  }]);
 
   useEffect(() => {
     fetch('/api/barang')
@@ -49,16 +52,41 @@ export default function Peminjaman() {
     }
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number, field: string) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, [field]: reader.result as string }));
+        const newItems = [...items];
+        newItems[index] = { ...newItems[index], [field]: reader.result as string };
+        setItems(newItems);
       };
       reader.readAsDataURL(file);
     }
   };
+
+  const handleItemChange = (index: number, field: string, value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setItems(newItems);
+  };
+
+  const addItem = () => {
+    setItems([...items, { barang: '', jumlah: '', fotoPeminjam: '', fotoBarang: '' }]);
+  };
+
+  const removeItem = (index: number) => {
+    const newItems = items.filter((_, i) => i !== index);
+    setItems(newItems);
+  };
+
+  const isStockInsufficient = (item: any) => {
+    const selectedBarang = barangList.find(b => b.nama_barang === item.barang);
+    return selectedBarang && item.jumlah !== '' && item.jumlah > selectedBarang.jumlah_stok;
+  };
+
+  const hasAnyInsufficientStock = items.some(isStockInsufficient);
+  const hasEmptyItems = items.some(item => !item.barang || item.jumlah === '' || item.jumlah <= 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,21 +98,12 @@ export default function Peminjaman() {
       const res = await fetch('/api/peminjaman', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, gpsLocation }),
+        body: JSON.stringify({ ...formData, items, gpsLocation }),
       });
       const data = await res.json();
       
       if (data.success) {
-        setSuccess(`Peminjaman berhasil! No Tiket: ${data.tiket}`);
-        setFormData({
-          lokasi: '',
-          nama: '',
-          kontak: '',
-          barang: '',
-          jumlah: 1,
-          fotoPeminjam: '',
-          fotoBarang: '',
-        });
+        window.location.href = `/success?tiket=${data.tiket}`;
       } else {
         setError(data.message);
       }
@@ -99,187 +118,221 @@ export default function Peminjaman() {
     <div className="max-w-3xl mx-auto space-y-8">
       <div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Form Peminjaman</h2>
-        <p className="mt-1 text-sm text-slate-500">Isi data peminjaman barang dengan lengkap dan benar.</p>
+        <p className="mt-1 text-sm text-slate-500">Isi form di bawah ini untuk meminjam barang.</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-4 rounded-xl border border-red-100 flex items-center gap-3">
-              <div className="h-2 w-2 bg-red-600 rounded-full" />
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100 flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-blue-600" />
-              <span className="font-medium">{success}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700">Nama Peminjam</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={formData.nama}
-                  onChange={e => setFormData({ ...formData, nama: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                  placeholder="Nama lengkap"
-                />
+        <div className="p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-4 rounded-xl border border-red-100 flex items-center gap-3">
+                <div className="h-2 w-2 bg-red-600 rounded-full" />
+                {error}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700">No Kontak (WA)</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="tel"
-                  required
-                  value={formData.kontak}
-                  onChange={e => setFormData({ ...formData, kontak: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                  placeholder="0812..."
-                />
+            )}
+            {success && (
+              <div className="bg-blue-50 text-blue-700 text-sm p-4 rounded-xl border border-blue-100 flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                <span className="font-medium">{success}</span>
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Lokasi Penggunaan</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-slate-400" />
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-slate-700">Nama Peminjam</label>
+                <div className="mt-1 relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nama}
+                    onChange={e => setFormData({ ...formData, nama: e.target.value })}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                    placeholder="Nama lengkap"
+                  />
                 </div>
-                <input
-                  type="text"
-                  required
-                  value={formData.lokasi}
-                  onChange={e => setFormData({ ...formData, lokasi: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                  placeholder="Ruang Rapat..."
-                />
               </div>
-            </div>
 
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700">Lokasi GPS (Otomatis)</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-slate-400" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700">No Kontak (WA)</label>
+                <div className="mt-1 relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.kontak}
+                    onChange={e => setFormData({ ...formData, kontak: e.target.value })}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                    placeholder="0812..."
+                  />
                 </div>
-                <input
-                  type="text"
-                  disabled
-                  value={gpsLocation || locationError || 'Mendeteksi lokasi...'}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl bg-slate-100 text-slate-500 sm:text-sm"
-                />
               </div>
-            </div>
 
-            <div className="sm:col-span-2 border-t border-slate-100 pt-6 mt-2">
-              <h3 className="text-sm font-semibold text-slate-900 mb-4">Detail Barang</h3>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Pilih Barang</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Package className="h-5 w-5 text-slate-400" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Lokasi Penggunaan</label>
+                <div className="mt-1 relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPin className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={formData.lokasi}
+                    onChange={e => setFormData({ ...formData, lokasi: e.target.value })}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                    placeholder="Ruang Rapat..."
+                  />
                 </div>
-                <select
-                  required
-                  value={formData.barang}
-                  onChange={e => setFormData({ ...formData, barang: e.target.value })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-slate-700">Lokasi GPS (Otomatis)</label>
+                <div className="mt-1 relative rounded-xl shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MapPin className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    disabled
+                    value={gpsLocation || locationError || 'Mendeteksi lokasi...'}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl bg-slate-100 text-slate-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2 border-t border-slate-100 pt-6 mt-2">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Detail Barang</h3>
+              </div>
+
+              {items.map((item, index) => (
+                <div key={index} className="sm:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-slate-800">Barang {index + 1}</h4>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700">Pilih Barang</label>
+                      <div className="mt-1 relative rounded-xl shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Package className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <select
+                          required
+                          value={item.barang}
+                          onChange={e => handleItemChange(index, 'barang', e.target.value)}
+                          className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
+                        >
+                          <option value="">-- Pilih Barang --</option>
+                          {barangList.map(b => (
+                            <option key={b.kode_barang} value={b.nama_barang}>
+                              {b.nama_barang} (Stok: {b.jumlah_stok})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700">Jumlah</label>
+                      <div className="mt-1 relative rounded-xl shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Hash className={`h-5 w-5 ${isStockInsufficient(item) ? 'text-red-400' : 'text-slate-400'}`} />
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={item.jumlah}
+                          onChange={e => handleItemChange(index, 'jumlah', e.target.value ? parseInt(e.target.value) : '')}
+                          className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${
+                            isStockInsufficient(item) 
+                              ? 'border-red-300 focus:ring-red-500 focus:border-red-500 text-red-900' 
+                              : 'border-slate-300 focus:ring-blue-500 focus:border-blue-500'
+                          }`}
+                        />
+                      </div>
+                      {isStockInsufficient(item) && (
+                        <p className="mt-2 text-sm text-red-600">jumlah barang yang akan dipinjam tidak cukup</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Foto Peminjam</label>
+                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-white">
+                        <div className="space-y-1 text-center">
+                          {item.fotoPeminjam ? (
+                            <img src={item.fotoPeminjam} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
+                          ) : (
+                            <Camera className="mx-auto h-12 w-12 text-slate-400" />
+                          )}
+                          <div className="flex text-sm text-slate-600 justify-center mt-4">
+                            <label className="relative cursor-pointer bg-slate-100 px-3 py-1 rounded-md font-bold text-black hover:text-slate-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                              <span>Upload foto</span>
+                              <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, index, 'fotoPeminjam')} />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Foto Barang</label>
+                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-white">
+                        <div className="space-y-1 text-center">
+                          {item.fotoBarang ? (
+                            <img src={item.fotoBarang} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
+                          ) : (
+                            <Package className="mx-auto h-12 w-12 text-slate-400" />
+                          )}
+                          <div className="flex text-sm text-slate-600 justify-center mt-4">
+                            <label className="relative cursor-pointer bg-slate-100 px-3 py-1 rounded-md font-bold text-black hover:text-slate-800 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                              <span>Upload foto</span>
+                              <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, index, 'fotoBarang')} />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="sm:col-span-2">
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="w-full py-3 border-2 border-dashed border-blue-300 text-blue-600 font-medium rounded-xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
                 >
-                  <option value="">-- Pilih Barang --</option>
-                  {barangList.map(b => (
-                    <option key={b.kode_barang} value={b.nama_barang}>
-                      {b.nama_barang} (Stok: {b.jumlah_stok})
-                    </option>
-                  ))}
-                </select>
+                  + Tambah Barang Lain
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Jumlah</label>
-              <div className="mt-1 relative rounded-xl shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Hash className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={formData.jumlah}
-                  onChange={e => setFormData({ ...formData, jumlah: parseInt(e.target.value) || 1 })}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                />
-              </div>
+            <div className="pt-6 border-t border-slate-100">
+              <button
+                type="submit"
+                disabled={loading || !gpsLocation || hasAnyInsufficientStock || hasEmptyItems}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'Menyimpan...' : 'Simpan Peminjaman'}
+              </button>
             </div>
-
-            <div className="sm:col-span-2 border-t border-slate-100 pt-6 mt-2">
-              <h3 className="text-sm font-semibold text-slate-900 mb-4">Dokumentasi</h3>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Foto Peminjam</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-slate-50">
-                <div className="space-y-1 text-center">
-                  {formData.fotoPeminjam ? (
-                    <img src={formData.fotoPeminjam} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
-                  ) : (
-                    <Camera className="mx-auto h-12 w-12 text-slate-400" />
-                  )}
-                  <div className="flex text-sm text-slate-600 justify-center mt-4">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>Upload foto</span>
-                      <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, 'fotoPeminjam')} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Foto Barang</label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-slate-50">
-                <div className="space-y-1 text-center">
-                  {formData.fotoBarang ? (
-                    <img src={formData.fotoBarang} alt="Preview" className="mx-auto h-32 object-cover rounded-lg" />
-                  ) : (
-                    <Package className="mx-auto h-12 w-12 text-slate-400" />
-                  )}
-                  <div className="flex text-sm text-slate-600 justify-center mt-4">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>Upload foto</span>
-                      <input type="file" accept="image/*" className="sr-only" onChange={e => handleFileChange(e, 'fotoBarang')} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-slate-100">
-            <button
-              type="submit"
-              disabled={loading || !gpsLocation}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Menyimpan...' : 'Simpan Peminjaman'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

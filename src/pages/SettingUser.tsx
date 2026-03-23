@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Edit2, Shield, User } from 'lucide-react';
 
 export default function SettingUser() {

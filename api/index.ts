@@ -78,11 +78,55 @@ async function sendAdminNotification(subject: string, text: string) {
   }
 }
 
+let driveFolderId: string | null = null;
+
+async function getOrCreateDriveFolder(drive: any): Promise<string> {
+  if (driveFolderId) return driveFolderId;
+
+  try {
+    const res = await drive.files.list({
+      q: "mimeType='application/vnd.google-apps.folder' and name='SIPENDI_Photos' and trashed=false",
+      fields: 'files(id, name)',
+      spaces: 'drive'
+    });
+
+    if (res.data.files && res.data.files.length > 0) {
+      driveFolderId = res.data.files[0].id;
+      return driveFolderId;
+    }
+
+    const folderMetadata = {
+      name: 'SIPENDI_Photos',
+      mimeType: 'application/vnd.google-apps.folder'
+    };
+    const folder = await drive.files.create({
+      requestBody: folderMetadata,
+      fields: 'id'
+    });
+    
+    await drive.permissions.create({
+      fileId: folder.data.id,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone'
+      }
+    });
+
+    driveFolderId = folder.data.id;
+    return driveFolderId;
+  } catch (error) {
+    console.error('Error creating folder:', error);
+    return '';
+  }
+}
+
 async function uploadToDrive(base64Data: string, filename: string): Promise<string> {
   if (!base64Data || !base64Data.startsWith('data:image')) return '';
   
   try {
     const drive = getDriveClient();
+    const folderId = await getOrCreateDriveFolder(drive);
+    
     const mimeType = base64Data.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/)?.[1] || 'image/jpeg';
     const base64String = base64Data.split(',')[1];
     const buffer = Buffer.from(base64String, 'base64');
@@ -91,7 +135,11 @@ async function uploadToDrive(base64Data: string, filename: string): Promise<stri
     stream.push(buffer);
     stream.push(null);
 
-    const fileMetadata = { name: filename };
+    const fileMetadata: any = { name: filename };
+    if (folderId) {
+      fileMetadata.parents = [folderId];
+    }
+    
     const media = { mimeType, body: stream };
 
     const file = await drive.files.create({
@@ -276,6 +324,19 @@ app.post('/api/barang', async (req, res) => {
   const { kode, nama, stok, deskripsi } = req.body;
   try {
     const sheets = getSheetsClient();
+    
+    // Check for duplicate kode
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Barang!A2:A',
+    });
+    const rows = response.data.values || [];
+    const isDuplicate = rows.some(row => row[0] === kode);
+    
+    if (isDuplicate) {
+      return res.json({ success: false, message: 'Kode barang sudah ada. Gunakan kode yang berbeda.' });
+    }
+
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: 'Barang!A:D',
@@ -287,6 +348,45 @@ app.post('/api/barang', async (req, res) => {
     res.json({ success: true, message: 'Barang berhasil ditambahkan!' });
   } catch (e: any) {
     console.error('Error adding barang:', e);
+    res.json({ success: false, message: `Error dari server: ${e.message || 'Unknown error'}` });
+  }
+});
+
+app.put('/api/barang/:original_kode', async (req, res) => {
+  const { original_kode } = req.params;
+  const { kode, nama, stok, deskripsi } = req.body;
+  try {
+    const sheets = getSheetsClient();
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Barang!A2:D',
+    });
+    const rows = response.data.values || [];
+    const rowIndex = rows.findIndex(row => row[0] === original_kode);
+
+    if (rowIndex === -1) {
+      return res.json({ success: false, message: 'Barang tidak ditemukan' });
+    }
+
+    // Check for duplicate kode if kode is changed
+    if (kode !== original_kode) {
+      const isDuplicate = rows.some(row => row[0] === kode);
+      if (isDuplicate) {
+        return res.json({ success: false, message: 'Kode barang sudah ada. Gunakan kode yang berbeda.' });
+      }
+    }
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `Barang!A${rowIndex + 2}:D${rowIndex + 2}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[kode, nama, stok, deskripsi]],
+      },
+    });
+    res.json({ success: true, message: 'Barang berhasil diperbarui!' });
+  } catch (e: any) {
+    console.error('Error updating barang:', e);
     res.json({ success: false, message: `Error dari server: ${e.message || 'Unknown error'}` });
   }
 });
@@ -316,24 +416,32 @@ app.delete('/api/barang/:kode', async (req, res) => {
 });
 
 app.post('/api/peminjaman', async (req, res) => {
-  const { lokasi, nama, kontak, barang, jumlah, fotoPeminjam, fotoBarang, gpsLocation } = req.body;
+  const { lokasi, nama, kontak, items, gpsLocation } = req.body;
   
   try {
     const sheets = getSheetsClient();
 
-    // 1. Check stock
+    // 1. Check stock for all items
     const barangRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: 'Barang!A2:D',
     });
     const barangRows = barangRes.data.values || [];
-    const barangIndex = barangRows.findIndex(row => row[1] === barang);
-    if (barangIndex === -1) {
-      return res.json({ success: false, message: 'Barang tidak ditemukan' });
+    
+    const requestedQuantities: Record<string, number> = {};
+    for (const item of items) {
+      requestedQuantities[item.barang] = (requestedQuantities[item.barang] || 0) + (parseInt(item.jumlah) || 0);
     }
-    const currentStok = parseInt(barangRows[barangIndex][2]) || 0;
-    if (currentStok < jumlah) {
-      return res.json({ success: false, message: `Stok tidak cukup! Sisa stok ${barang} hanya ${currentStok}.` });
+
+    for (const [barangName, reqQty] of Object.entries(requestedQuantities)) {
+      const barangIndex = barangRows.findIndex(row => row[1] === barangName);
+      if (barangIndex === -1) {
+        return res.json({ success: false, message: `Barang ${barangName} tidak ditemukan` });
+      }
+      const currentStok = parseInt(barangRows[barangIndex][2]) || 0;
+      if (currentStok < reqQty) {
+        return res.json({ success: false, message: `Stok tidak cukup! Sisa stok ${barangName} hanya ${currentStok}.` });
+      }
     }
 
     // 2. Generate Tiket
@@ -344,29 +452,50 @@ app.post('/api/peminjaman', async (req, res) => {
     });
     const peminjamanRows = peminjamanRes.data.values || [];
     const todayTikets = peminjamanRows.filter(row => row[0]?.startsWith(dateStr));
-    const count = todayTikets.length + 1;
+    const count = new Set(todayTikets.map(r => r[0])).size + 1;
     const noTiket = dateStr + String(count).padStart(5, '0');
     const waktuFormat = new Date().toLocaleString('id-ID');
 
     // 3. Update Stock
-    const newStok = currentStok - jumlah;
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `Barang!C${barangIndex + 2}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[newStok]] },
-    });
+    const barangDataToUpdate = [];
+    for (const [barangName, reqQty] of Object.entries(requestedQuantities)) {
+      const barangIndex = barangRows.findIndex(row => row[1] === barangName);
+      const currentStok = parseInt(barangRows[barangIndex][2]) || 0;
+      const newStok = currentStok - reqQty;
+      barangDataToUpdate.push({
+        range: `Barang!C${barangIndex + 2}`,
+        values: [[newStok]]
+      });
+    }
 
-    // 4. Upload Photos to Drive
-    let linkFotoPeminjam = '';
-    let linkFotoBarang = '';
-    
-    if (fotoPeminjam) {
-      linkFotoPeminjam = await uploadToDrive(fotoPeminjam, `Peminjam_${noTiket}.jpg`);
+    if (barangDataToUpdate.length > 0) {
+      await sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        requestBody: {
+          valueInputOption: 'USER_ENTERED',
+          data: barangDataToUpdate
+        }
+      });
     }
-    if (fotoBarang) {
-      linkFotoBarang = await uploadToDrive(fotoBarang, `Barang_${noTiket}.jpg`);
-    }
+
+    // 4. Upload Photos to Drive and prepare rows
+    const rowsToInsert = await Promise.all(items.map(async (item: any, index: number) => {
+      let linkFotoPeminjam = '';
+      let linkFotoBarang = '';
+      
+      if (item.fotoPeminjam) {
+        linkFotoPeminjam = await uploadToDrive(item.fotoPeminjam, `Peminjam_${noTiket}_${index + 1}.jpg`);
+      }
+      if (item.fotoBarang) {
+        linkFotoBarang = await uploadToDrive(item.fotoBarang, `Barang_${noTiket}_${index + 1}.jpg`);
+      }
+
+      return [
+        noTiket, waktuFormat, lokasi, nama, kontak, item.barang, item.jumlah,
+        linkFotoPeminjam, linkFotoBarang,
+        'Dipinjam', '', '', '', '', gpsLocation || ''
+      ];
+    }));
 
     // 5. Insert Peminjaman
     await sheets.spreadsheets.values.append({
@@ -374,21 +503,18 @@ app.post('/api/peminjaman', async (req, res) => {
       range: 'Peminjaman!A:O',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [[
-          noTiket, waktuFormat, lokasi, nama, kontak, barang, jumlah,
-          linkFotoPeminjam, linkFotoBarang,
-          'Dipinjam', '', '', '', '', gpsLocation || ''
-        ]],
+        values: rowsToInsert,
       },
     });
 
     // Send Notification
+    const itemsList = items.map((item: any) => `- ${item.barang} (${item.jumlah} unit)`).join('\n');
     await sendAdminNotification(
       `Notifikasi Peminjaman Baru - ${noTiket}`,
-      `Telah terjadi transaksi peminjaman baru:\n\nNo Tiket: ${noTiket}\nWaktu: ${waktuFormat}\nNama Peminjam: ${nama}\nNo Kontak: ${kontak}\nBarang: ${barang}\nJumlah: ${jumlah}\nLokasi: ${lokasi}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
+      `Telah terjadi transaksi peminjaman baru:\n\nNo Tiket: ${noTiket}\nWaktu: ${waktuFormat}\nNama Peminjam: ${nama}\nNo Kontak: ${kontak}\nLokasi: ${lokasi}\n\nBarang yang dipinjam:\n${itemsList}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
     );
 
-    res.json({ success: true, tiket: noTiket });
+    res.json({ success: true, tiket: noTiket, data: { nama, items } });
   } catch (error: any) {
     console.error('Error creating peminjaman:', error);
     res.status(500).json({ success: false, message: `Gagal membuat peminjaman: ${error.message}` });
@@ -406,20 +532,23 @@ app.get('/api/peminjaman/tiket/:tiket', async (req, res) => {
     const rows = response.data.values || [];
     
     // Search by tiket OR phone number (kontak is in column E / index 4)
-    const row = rows.find(r => (r[0] === tiket || r[4] === tiket) && r[9] === 'Dipinjam');
+    const matchingRows = rows.filter(r => (r[0] === tiket || r[4] === tiket) && r[9] === 'Dipinjam');
 
-    if (row) {
+    if (matchingRows.length > 0) {
+      const firstRow = matchingRows[0];
       res.json({
         success: true,
         data: {
-          no_tiket: row[0],
-          waktu_peminjaman: row[1],
-          lokasi: row[2],
-          nama_peminjam: row[3],
-          no_kontak: row[4],
-          barang_dipinjam: row[5],
-          jumlah: parseInt(row[6]) || 0,
-          status: row[9],
+          no_tiket: firstRow[0],
+          waktu_peminjaman: firstRow[1],
+          lokasi: firstRow[2],
+          nama_peminjam: firstRow[3],
+          no_kontak: firstRow[4],
+          items: matchingRows.map(r => ({
+            barang_dipinjam: r[5],
+            jumlah: parseInt(r[6]) || 0,
+          })),
+          status: firstRow[9],
         }
       });
     } else {
@@ -443,27 +572,32 @@ app.post('/api/pengembalian', async (req, res) => {
       range: 'Peminjaman!A2:O',
     });
     const peminjamanRows = peminjamanRes.data.values || [];
-    const peminjamanIndex = peminjamanRows.findIndex(r => r[0] === tiket && r[9] === 'Dipinjam');
     
-    if (peminjamanIndex === -1) {
+    const indexesToUpdate: number[] = [];
+    peminjamanRows.forEach((r, idx) => {
+      if (r[0] === tiket && r[9] === 'Dipinjam') {
+        indexesToUpdate.push(idx);
+      }
+    });
+    
+    if (indexesToUpdate.length === 0) {
       return res.json({ success: false, message: 'Tiket tidak valid atau barang sudah dikembalikan.' });
     }
 
-    const row = peminjamanRows[peminjamanIndex];
-    const barang = row[5];
-    const jumlah = parseInt(row[6]) || 0;
     const waktuPengembalian = new Date().toLocaleString('id-ID');
 
     // 2. Update Peminjaman
-    await sheets.spreadsheets.values.update({
+    const dataToUpdate = indexesToUpdate.map(idx => ({
+      range: `Peminjaman!J${idx + 2}:N${idx + 2}`,
+      values: [[ 'Dikembalikan', waktuPengembalian, nama, kontak, kondisi ]]
+    }));
+
+    await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId: SPREADSHEET_ID,
-      range: `Peminjaman!J${peminjamanIndex + 2}:N${peminjamanIndex + 2}`,
-      valueInputOption: 'USER_ENTERED',
       requestBody: {
-        values: [[
-          'Dikembalikan', waktuPengembalian, nama, kontak, kondisi
-        ]],
-      },
+        valueInputOption: 'USER_ENTERED',
+        data: dataToUpdate
+      }
     });
 
     // 3. Update Stock if condition is Baik
@@ -473,15 +607,35 @@ app.post('/api/pengembalian', async (req, res) => {
         range: 'Barang!A2:D',
       });
       const barangRows = barangRes.data.values || [];
-      const barangIndex = barangRows.findIndex(r => r[1] === barang);
-      if (barangIndex !== -1) {
-        const currentStok = parseInt(barangRows[barangIndex][2]) || 0;
-        const newStok = currentStok + jumlah;
-        await sheets.spreadsheets.values.update({
+      
+      const stockChanges: Record<string, number> = {};
+      indexesToUpdate.forEach(idx => {
+        const row = peminjamanRows[idx];
+        const barang = row[5];
+        const jumlah = parseInt(row[6]) || 0;
+        stockChanges[barang] = (stockChanges[barang] || 0) + jumlah;
+      });
+
+      const barangDataToUpdate = [];
+      for (const [barangName, jumlah] of Object.entries(stockChanges)) {
+        const barangIndex = barangRows.findIndex(r => r[1] === barangName);
+        if (barangIndex !== -1) {
+          const currentStok = parseInt(barangRows[barangIndex][2]) || 0;
+          const newStok = currentStok + jumlah;
+          barangDataToUpdate.push({
+            range: `Barang!C${barangIndex + 2}`,
+            values: [[newStok]]
+          });
+        }
+      }
+
+      if (barangDataToUpdate.length > 0) {
+        await sheets.spreadsheets.values.batchUpdate({
           spreadsheetId: SPREADSHEET_ID,
-          range: `Barang!C${barangIndex + 2}`,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: { values: [[newStok]] },
+          requestBody: {
+            valueInputOption: 'USER_ENTERED',
+            data: barangDataToUpdate
+          }
         });
       }
     }
@@ -489,7 +643,7 @@ app.post('/api/pengembalian', async (req, res) => {
     // Send Notification
     await sendAdminNotification(
       `Notifikasi Pengembalian Barang - ${tiket}`,
-      `Telah terjadi transaksi pengembalian barang:\n\nNo Tiket: ${tiket}\nWaktu: ${waktuPengembalian}\nNama Pengembali: ${nama}\nNo Kontak: ${kontak}\nBarang: ${barang}\nJumlah: ${jumlah}\nKondisi: ${kondisi}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
+      `Telah terjadi transaksi pengembalian barang:\n\nNo Tiket: ${tiket}\nWaktu: ${waktuPengembalian}\nNama Pengembali: ${nama}\nNo Kontak: ${kontak}\nKondisi: ${kondisi}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
     );
 
     res.json({ success: true });

@@ -130,15 +130,7 @@ export default function Pengembalian() {
                 <CheckCircle2 className="h-5 w-5 text-blue-500" />
                 Data Peminjaman Ditemukan
               </h3>
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm">
-                <div>
-                  <dt className="text-slate-500">Barang</dt>
-                  <dd className="font-medium text-slate-900 mt-1">{dataPinjam.barang_dipinjam}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">Jumlah</dt>
-                  <dd className="font-medium text-slate-900 mt-1">{dataPinjam.jumlah} unit</dd>
-                </div>
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4 text-sm mb-4">
                 <div>
                   <dt className="text-slate-500">Waktu Pinjam</dt>
                   <dd className="font-medium text-slate-900 mt-1">{dataPinjam.waktu_peminjaman}</dd>
@@ -148,6 +140,17 @@ export default function Pengembalian() {
                   <dd className="font-medium text-slate-900 mt-1">{dataPinjam.lokasi}</dd>
                 </div>
               </dl>
+              <div>
+                <dt className="text-slate-500 text-sm mb-2">Barang yang Dipinjam</dt>
+                <dd className="space-y-2">
+                  {dataPinjam.items?.map((item: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
+                      <span className="font-medium text-slate-900">{item.barang_dipinjam}</span>
+                      <span className="text-sm text-slate-600">{item.jumlah} unit</span>
+                    </div>
+                  ))}
+                </dd>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">

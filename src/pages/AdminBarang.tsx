@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Plus, Trash2, Search } from 'lucide-react';
+import { Package, Plus, Trash2, Search, Edit } from 'lucide-react';
 
 export default function AdminBarang() {
   const [barang, setBarang] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalKode, setOriginalKode] = useState('');
   
   const [formData, setFormData] = useState({
     kode: '',
@@ -38,8 +40,11 @@ export default function AdminBarang() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/barang', {
-        method: 'POST',
+      const url = isEditing ? `/api/barang/${originalKode}` : '/api/barang';
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
@@ -47,6 +52,8 @@ export default function AdminBarang() {
       if (data.success) {
         fetchBarang();
         setShowForm(false);
+        setIsEditing(false);
+        setOriginalKode('');
         setFormData({ kode: '', nama: '', stok: 1, deskripsi: '' });
       } else {
         alert(data.message);
@@ -54,6 +61,19 @@ export default function AdminBarang() {
     } catch (err) {
       alert('Terjadi kesalahan koneksi.');
     }
+  };
+
+  const handleEdit = (item: any) => {
+    setFormData({
+      kode: item.kode_barang,
+      nama: item.nama_barang,
+      stok: item.jumlah_stok,
+      deskripsi: item.deskripsi,
+    });
+    setOriginalKode(item.kode_barang);
+    setIsEditing(true);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (kode: string) => {
@@ -84,17 +104,26 @@ export default function AdminBarang() {
           <p className="mt-1 text-sm text-slate-500">Daftar inventaris barang Kecamatan Tamalate.</p>
         </div>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              setShowForm(false);
+              setIsEditing(false);
+              setOriginalKode('');
+              setFormData({ kode: '', nama: '', stok: 1, deskripsi: '' });
+            } else {
+              setShowForm(true);
+            }
+          }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          {showForm ? 'Batal Tambah' : 'Tambah Barang'}
+          {showForm ? (isEditing ? 'Batal Edit' : 'Batal Tambah') : 'Tambah Barang'}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-8">
-          <h3 className="text-lg font-semibold text-slate-900 mb-6">Tambah Barang Baru</h3>
+          <h3 className="text-lg font-semibold text-slate-900 mb-6">{isEditing ? 'Edit Barang' : 'Tambah Barang Baru'}</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-slate-700">Kode Barang</label>
@@ -144,7 +173,7 @@ export default function AdminBarang() {
                 type="submit"
                 className="px-6 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                Simpan Barang
+                {isEditing ? 'Simpan Perubahan' : 'Simpan Barang'}
               </button>
             </div>
           </form>
@@ -215,13 +244,22 @@ export default function AdminBarang() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleDelete(item.kode_barang)}
-                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors"
-                        title="Hapus Barang"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors"
+                          title="Edit Barang"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.kode_barang)}
+                          className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors"
+                          title="Hapus Barang"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
