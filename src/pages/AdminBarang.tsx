@@ -220,8 +220,8 @@ export default function AdminBarang() {
                   </td>
                 </tr>
               ) : (
-                filteredBarang.map((item) => (
-                  <tr key={item.kode_barang} className="hover:bg-slate-50 transition-colors">
+                filteredBarang.map((item, idx) => (
+                  <tr key={`${item.kode_barang}-${idx}`} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                       {item.kode_barang}
                     </td>

@@ -37,7 +37,10 @@ export default function Home({ onLogout }: { onLogout?: () => void }) {
         <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
           <img src="/logo-tamalate.png" alt="Logo Tamalate" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           <Package className="h-6 w-6 text-blue-400" />
-          <span>SIPENDI</span>
+          <div className="flex flex-col">
+            <span>SIPENDI</span>
+            <span className="text-[10px] font-normal text-blue-200 -mt-1 tracking-normal">( SIstem PEminjamaN Dan pengembalian Inventaris )</span>
+          </div>
         </div>
         <Link to="/login" className="flex items-center gap-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           <ShieldCheck className="h-4 w-4" />
@@ -47,7 +50,7 @@ export default function Home({ onLogout }: { onLogout?: () => void }) {
 
       <main className="flex-1 p-4 sm:p-8 max-w-4xl mx-auto w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Layanan Peminjaman Barang</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Layanan Peminjaman dan Pengembalian Inventaris</h1>
           <p className="text-slate-600">Kecamatan Tamalate</p>
         </div>
 
@@ -293,8 +296,8 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
                     className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
                   >
                     <option value="">-- Pilih Barang --</option>
-                    {barangList.map(b => (
-                      <option key={b.kode_barang} value={b.nama_barang}>
+                    {barangList.map((b, idx) => (
+                      <option key={`${b.kode_barang}-${idx}`} value={b.nama_barang}>
                         {b.nama_barang} (Stok: {b.jumlah_stok})
                       </option>
                     ))}
@@ -384,7 +387,7 @@ function FormPeminjaman({ gpsLocation, locationError }: { gpsLocation: string, l
           disabled={loading || !gpsLocation || hasAnyInsufficientStock || hasEmptyItems}
           className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Menyimpan...' : 'Simpan Peminjaman'}
+          {loading ? 'Menyimpan...' : 'Selesai dan Pinjam'}
         </button>
       </div>
     </form>

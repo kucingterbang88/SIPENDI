@@ -237,8 +237,8 @@ export default function Peminjaman() {
                           className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors bg-white"
                         >
                           <option value="">-- Pilih Barang --</option>
-                          {barangList.map(b => (
-                            <option key={b.kode_barang} value={b.nama_barang}>
+                          {barangList.map((b, idx) => (
+                            <option key={`${b.kode_barang}-${idx}`} value={b.nama_barang}>
                               {b.nama_barang} (Stok: {b.jumlah_stok})
                             </option>
                           ))}
@@ -328,7 +328,7 @@ export default function Peminjaman() {
                 disabled={loading || !gpsLocation || hasAnyInsufficientStock || hasEmptyItems}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
               >
-                {loading ? 'Menyimpan...' : 'Simpan Peminjaman'}
+                {loading ? 'Menyimpan...' : 'Selesai dan Pinjam'}
               </button>
             </div>
           </form>

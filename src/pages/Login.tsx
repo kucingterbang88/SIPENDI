@@ -47,7 +47,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
           Login Admin
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Sistem Peminjaman dan Pengembalian
+          Sistem Peminjaman dan Pengembalian Inventaris
           <br />
           <span className="font-medium text-blue-600">Kecamatan Tamalate</span>
         </p>

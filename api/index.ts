@@ -490,10 +490,12 @@ app.post('/api/peminjaman', async (req, res) => {
         linkFotoBarang = await uploadToDrive(item.fotoBarang, `Barang_${noTiket}_${index + 1}.jpg`);
       }
 
+      const mapsLink = gpsLocation ? `https://www.google.com/maps?q=${gpsLocation.replace(/\s/g, '')}` : '';
+
       return [
         noTiket, waktuFormat, lokasi, nama, kontak, item.barang, item.jumlah,
         linkFotoPeminjam, linkFotoBarang,
-        'Dipinjam', '', '', '', '', gpsLocation || ''
+        'Dipinjam', '', '', '', '', mapsLink
       ];
     }));
 

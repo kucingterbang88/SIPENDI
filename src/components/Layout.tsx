@@ -37,7 +37,10 @@ export default function Layout({ children, user, onLogout }: { children: React.R
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
             <img src="/logo-tamalate.png" alt="Logo Tamalate" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             <Package className="h-6 w-6 text-blue-400" />
-            <span>SIPENDI</span>
+            <div className="flex flex-col">
+              <span>SIPENDI</span>
+              <span className="text-[10px] font-normal text-blue-200 -mt-1 tracking-normal">( SIstem PEminjamaN Dan pengembalian Inventaris )</span>
+            </div>
           </div>
           <button className="lg:hidden text-blue-200 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="h-6 w-6" />
