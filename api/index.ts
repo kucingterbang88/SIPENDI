@@ -104,13 +104,17 @@ async function getOrCreateDriveFolder(drive: any): Promise<string> {
       fields: 'id'
     });
     
-    await drive.permissions.create({
-      fileId: folder.data.id,
-      requestBody: {
-        role: 'reader',
-        type: 'anyone'
-      }
-    });
+    try {
+      await drive.permissions.create({
+        fileId: folder.data.id,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone'
+        }
+      });
+    } catch (permError: any) {
+      console.warn('Could not make folder public:', permError.message);
+    }
 
     driveFolderId = folder.data.id;
     return driveFolderId;
@@ -131,9 +135,7 @@ async function uploadToDrive(base64Data: string, filename: string): Promise<stri
     const base64String = base64Data.split(',')[1];
     const buffer = Buffer.from(base64String, 'base64');
     
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
+    const stream = Readable.from(buffer);
 
     const fileMetadata: any = { name: filename };
     if (folderId) {
@@ -150,16 +152,20 @@ async function uploadToDrive(base64Data: string, filename: string): Promise<stri
 
     if (file.data.id) {
       // Make the file publicly viewable
-      await drive.permissions.create({
-        fileId: file.data.id,
-        requestBody: { role: 'reader', type: 'anyone' },
-      });
+      try {
+        await drive.permissions.create({
+          fileId: file.data.id,
+          requestBody: { role: 'reader', type: 'anyone' },
+        });
+      } catch (permError: any) {
+        console.warn('Could not make file public (might be restricted by Workspace policy):', permError.message);
+      }
       return file.data.webViewLink || 'Terlampir';
     }
     return 'Terlampir';
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading to Drive:', error);
-    return 'Gagal Upload';
+    return `Gagal Upload: ${error.message}`;
   }
 }
 
@@ -416,7 +422,7 @@ app.delete('/api/barang/:kode', async (req, res) => {
 });
 
 app.post('/api/peminjaman', async (req, res) => {
-  const { lokasi, nama, kontak, items, gpsLocation } = req.body;
+  const { lokasi, nama, kontak, durasi, items, gpsLocation } = req.body;
   
   try {
     const sheets = getSheetsClient();
@@ -495,14 +501,14 @@ app.post('/api/peminjaman', async (req, res) => {
       return [
         noTiket, waktuFormat, lokasi, nama, kontak, item.barang, item.jumlah,
         linkFotoPeminjam, linkFotoBarang,
-        'Dipinjam', '', '', '', '', mapsLink
+        'Dipinjam', '', '', '', '', mapsLink, durasi ? `${durasi} Hari` : ''
       ];
     }));
 
     // 5. Insert Peminjaman
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Peminjaman!A:O',
+      range: 'Peminjaman!A:P',
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: rowsToInsert,
@@ -513,7 +519,7 @@ app.post('/api/peminjaman', async (req, res) => {
     const itemsList = items.map((item: any) => `- ${item.barang} (${item.jumlah} unit)`).join('\n');
     await sendAdminNotification(
       `Notifikasi Peminjaman Baru - ${noTiket}`,
-      `Telah terjadi transaksi peminjaman baru:\n\nNo Tiket: ${noTiket}\nWaktu: ${waktuFormat}\nNama Peminjam: ${nama}\nNo Kontak: ${kontak}\nLokasi: ${lokasi}\n\nBarang yang dipinjam:\n${itemsList}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
+      `Telah terjadi transaksi peminjaman baru:\n\nNo Tiket: ${noTiket}\nWaktu: ${waktuFormat}\nNama Peminjam: ${nama}\nNo Kontak: ${kontak}\nLokasi: ${lokasi}\nDurasi: ${durasi || 1} Hari\n\nBarang yang dipinjam:\n${itemsList}\n\nSilakan cek dashboard SIPENDI untuk detail lebih lanjut.`
     );
 
     res.json({ success: true, tiket: noTiket, data: { nama, items } });
@@ -529,7 +535,7 @@ app.get('/api/peminjaman/tiket/:tiket', async (req, res) => {
     const sheets = getSheetsClient();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Peminjaman!A2:O',
+      range: 'Peminjaman!A2:P',
     });
     const rows = response.data.values || [];
     
@@ -571,7 +577,7 @@ app.post('/api/pengembalian', async (req, res) => {
     // 1. Find Peminjaman
     const peminjamanRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Peminjaman!A2:O',
+      range: 'Peminjaman!A2:P',
     });
     const peminjamanRows = peminjamanRes.data.values || [];
     
@@ -660,7 +666,7 @@ app.get('/api/riwayat', async (req, res) => {
     const sheets = getSheetsClient();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Peminjaman!A2:O',
+      range: 'Peminjaman!A2:P',
     });
     const rows = response.data.values || [];
     const riwayat = rows.map(row => ({
